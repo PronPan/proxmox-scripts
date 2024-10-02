@@ -79,16 +79,12 @@ mkdir /opt/jdown2 || die "Failed to create directory /opt/jdown2."
 info "Changing ownership of /opt/jdown2 to jdown2."
 chown jdown2 /opt/jdown2 || die "Failed to change ownership of /opt/jdown2."
 
-# Ensure /opt/jdown2 has correct permissions for the download
-chown -R jdown2:jdown2 /opt/jdown2
-chmod 755 /opt/jdown2
-
 # Downloading JDownloader.jar without logging
-sudo -u jdown2 wget -q http://installer.jdownloader.org/JDownloader.jar || die "Failed to download JDownloader.jar."
-
-# Downloading jdownloader2
 info "Downloading JDownloader.jar for jdownloader2."
-sudo -u jdown2 wget -q http://installer.jdownloader.org/JDownloader.jar || die "Failed to download JDownloader.jar."
+wget -O /opt/jdown2/JDownloader.jar http://installer.jdownloader.org/JDownloader.jar || die "Failed to download JDownloader.jar."
+
+chown -R jdown2:jdown2 /opt/jdown2
+chmod -R 755 /opt/jdown2
 
 # Download systemd service file for jdownloader2
 info "Downloading systemd service file for jdownloader2."
