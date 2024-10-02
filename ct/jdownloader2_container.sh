@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LANG=en_US.UTF-8
+
 while true; do
     read -p "This will create a new jdownloader2 LXC Container. Proceed (y/n)?" yn
     case $yn in
