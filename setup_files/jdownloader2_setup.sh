@@ -56,18 +56,18 @@ locale-gen >/dev/null || die "Failed to generate locale."
 
 # Autoremove unnecessary packages
 info "Running apt-get autoremove to clean up unnecessary packages."
-apt-get autoremove >/dev/null || die "Failed to autoremove unnecessary packages."
+apt-get autoremove -y >/dev/null || die "Failed to autoremove unnecessary packages."
 
 # Updating the container OS
 info "Updating package lists."
-apt-get update || die "Failed to update package lists."
+apt-get update -y || die "Failed to update package lists."
 
 info "Upgrading packages to the latest versions."
-apt-get upgrade || die "Failed to upgrade packages."
+apt-get upgrade -y || die "Failed to upgrade packages."
 
 # Installing prerequisites
 info "Installing prerequisites: wget, sudo, and openjdk-17-jre-headless."
-apt-get install wget sudo openjdk-17-jre-headless || die "Failed to install prerequisites."
+apt-get install wget sudo openjdk-17-jre-headless -y || die "Failed to install prerequisites."
 
 # Create user for jdownloader2
 info "Creating user 'jdown2' with no login shell."
