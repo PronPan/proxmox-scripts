@@ -141,7 +141,7 @@ ARCH=$(dpkg --print-architecture)
 HOSTNAME=jdownloader2
 TEMPLATE_STRING="local:vztmpl/${TEMPLATE}"
 pct create $CTID $TEMPLATE_STRING -arch $ARCH -features nesting=1 \
-  -hostname $HOSTNAME -net0 name=eth0,bridge=vmbr0,ip=dhcp -onboot 1 -cores 2 -memory 1024\
+  -hostname $HOSTNAME -net0 name=eth0,bridge=vmbr1,ip=10.0.0.16/24 -onboot 1 -cores 2 -memory 1024\
   -ostype $OSTYPE -rootfs $ROOTFS,size=$DISK_SIZE -storage $STORAGE >/dev/null
 
 MOUNT=$(pct mount $CTID | cut -d"'" -f 2)
