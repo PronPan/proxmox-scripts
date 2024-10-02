@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LANG=en_US.UTF-8
+
 set -o errexit 
 set -o errtrace
 set -o nounset 
