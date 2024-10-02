@@ -54,9 +54,9 @@ sed -i "/$LANG/ s/\(^# \)//" /etc/locale.gen || die "Failed to uncomment locale.
 info "Generating locale."
 locale-gen >/dev/null || die "Failed to generate locale."
 
-# Purge OpenSSH packages
+# Purge OpenSSH packages in non-interactive mode
 info "Purging OpenSSH client and server."
-apt-get purge openssh-{client,server} >/dev/null || die "Failed to purge OpenSSH client/server."
+apt-get purge -y openssh-client openssh-server || die "Failed to purge OpenSSH client/server."
 
 # Autoremove unnecessary packages
 info "Running apt-get autoremove to clean up unnecessary packages."
