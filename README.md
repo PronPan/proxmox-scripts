@@ -1,7 +1,5 @@
 ## Proxmox Scripts
 
-:warning: This repository will no longer be maintained :warning:
-
 Inspired by and based on [tteck's Proxmox helper scripts](https://github.com/tteck/Proxmox)
 
 Scripts for Proxmox VE and Proxmox BS.
