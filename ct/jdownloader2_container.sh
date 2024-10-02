@@ -20,7 +20,7 @@ trap cleanup EXIT
 
 function error_exit() {
   trap - ERR
-  local DEFAULT='Unknown failure occured.'
+  local DEFAULT='Unknown failure occurred.'
   local REASON="\e[97m${1:-$DEFAULT}\e[39m"
   local FLAG="\e[91m[ERROR] \e[93m$EXIT@$LINE"
   msg "$FLAG $REASON"
@@ -72,7 +72,7 @@ function load_module() {
 TEMP_DIR=$(mktemp -d)
 pushd $TEMP_DIR >/dev/null
 
-wget -qL https://raw.githubusercontent.com/StevenSeifried/proxmox-scripts/main/setup_files/jdownloader2_setup.sh
+wget -qL https://raw.githubusercontent.com/pronpan/proxmox-scripts/main/setup_files/jdownloader2_setup.sh
 
 load_module overlay
 
@@ -89,31 +89,31 @@ while read -r line; do
 done < <(pvesm status -content rootdir | awk 'NR>1')
 if [ $((${#STORAGE_MENU[@]}/3)) -eq 0 ]; then
   warn "'Container' needs to be selected for at least one storage location."
-  die "Unable to detect valid storage location."
+  die "Unable to detect a valid storage location."
 elif [ $((${#STORAGE_MENU[@]}/3)) -eq 1 ]; then
   STORAGE=${STORAGE_MENU[0]}
 else
   while [ -z "${STORAGE:+x}" ]; do
     STORAGE=$(whiptail --title "Storage Pools" --radiolist \
-    "Which storage pool you would like to use for the container?\n\n" \
+    "Which storage pool would you like to use for the container?\n\n" \
     16 $(($MSG_MAX_LENGTH + 23)) 6 \
     "${STORAGE_MENU[@]}" 3>&1 1>&2 2>&3) || exit
   done
 fi
-info "Using '$STORAGE' for Storage Location."
+info "Using '$STORAGE' for storage location."
 
 CTID=$(pvesh get /cluster/nextid)
 info "Container ID is $CTID."
 
-echo -e "${CHECKMARK} \e[1;92m Updating LXC Template List... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Updating LXC template list... \e[0m"
 pveam update >/dev/null
-echo -e "${CHECKMARK} \e[1;92m Downloading LXC Template... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Downloading LXC template... \e[0m"
 OSTYPE=debian
-OSVERSION=${OSTYPE}-11
+OSVERSION=${OSTYPE}-12
 mapfile -t TEMPLATES < <(pveam available -section system | sed -n "s/.*\($OSVERSION.*\)/\1/p" | sort -t - -k 2 -V)
 TEMPLATE="${TEMPLATES[-1]}"
 pveam download local $TEMPLATE >/dev/null ||
-  die "A problem occured while downloading the LXC template."
+  die "A problem occurred while downloading the LXC template."
 
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
@@ -129,8 +129,8 @@ esac
 DISK=${DISK_PREFIX:-vm}-${CTID}-disk-0${DISK_EXT-}
 ROOTFS=${STORAGE}:${DISK_REF-}${DISK}
 
-echo -e "${CHECKMARK} \e[1;92m Creating LXC Container... \e[0m"
-DISK_SIZE=8G
+echo -e "${CHECKMARK} \e[1;92m Creating LXC container... \e[0m"
+DISK_SIZE=32G
 pvesm alloc $STORAGE $CTID $DISK $DISK_SIZE --format ${DISK_FORMAT:-raw} >/dev/null
 if [ "$STORAGE_TYPE" == "zfspool" ]; then
   warn "Some containers may not work properly due to ZFS not supporting 'fallocate'."
@@ -148,10 +148,10 @@ MOUNT=$(pct mount $CTID | cut -d"'" -f 2)
 ln -fs $(readlink /etc/localtime) ${MOUNT}/etc/localtime
 pct unmount $CTID && unset MOUNT
 
-echo -e "${CHECKMARK} \e[1;92m Starting LXC Container... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Starting LXC container... \e[0m"
 pct start $CTID
 pct push $CTID jdownloader2_setup.sh /jdownloader2_setup.sh -perms 755
 pct exec $CTID /jdownloader2_setup.sh
 
 IP=$(pct exec $CTID ip a s dev eth0 | sed -n '/inet / s/\// /p' | awk '{print $2}')
-info "Successfully created a jdownloader2 LXC Container to $CTID at IP Address ${IP}"
+info "Successfully created a jdownloader2 LXC container with ID $CTID at IP address ${IP}"
