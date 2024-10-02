@@ -84,6 +84,9 @@ chown -R jdown2:jdown2 /opt/jdown2
 chmod 755 /opt/jdown2
 
 # Downloading JDownloader.jar without logging
+sudo -u jdown2 wget -q http://installer.jdownloader.org/JDownloader.jar || die "Failed to download JDownloader.jar."
+
+# Downloading jdownloader2
 info "Downloading JDownloader.jar for jdownloader2."
 sudo -u jdown2 wget -q http://installer.jdownloader.org/JDownloader.jar || die "Failed to download JDownloader.jar."
 
