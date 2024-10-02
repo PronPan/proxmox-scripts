@@ -12,7 +12,7 @@ trap 'die "Script interrupted."' INT
 
 function error_exit() {
   trap - ERR
-  local DEFAULT='Unknown failure occurred.'
+  local DEFAULT='Unknown failure occured.'
   local REASON="\e[97m${1:-$DEFAULT}\e[39m"
   local FLAG="\e[91m[ERROR:LXC] \e[93m$EXIT@$LINE"
   msg "$FLAG $REASON"
@@ -23,46 +23,54 @@ function msg() {
   echo -e "$TEXT"
 }
 
-echo -e "${CHECKMARK} \e[1;92m Setting up container OS... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Setting up Container OS... \e[0m"
 sed -i "/$LANG/ s/\(^# \)//" /etc/locale.gen
 locale-gen >/dev/null
-apt-get purge openssh-{client,server} >/dev/null
+apt-get -y purge openssh-{client,server} >/dev/null
 apt-get autoremove >/dev/null
 
-echo -e "${CHECKMARK} \e[1;92m Updating container OS... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Updating Container OS... \e[0m"
 apt-get update &>/dev/null
-apt-get -qq upgrade &>/dev/null
+apt-get -qqy upgrade &>/dev/null
 
-echo -e "${CHECKMARK} \e[1;92m Installing prerequisites... \e[0m"
-apt-get -qq install \
-    wget \
+echo -e "${CHECKMARK} \e[1;92m Installing Prerequisites... \e[0m"
+apt-get -qqy install \
+    curl \
     sudo \
-    openjdk-17-jre-headless &>/dev/null
+    apt-transport-https \
+    at \
+    libfl2 \
+    gnupg \
+    va-driver-all \
+    ocl-icd-libopencl1 \
+    beignet-opencl-icd &>/dev/null
 
-echo -e "${CHECKMARK} \e[1;92m Creating user for jdownloader2... \e[0m"
-useradd -s /sbin/nologin jdown2
+#echo -e "${CHECKMARK} \e[1;92m Configure Hardware Acceleration... \e[0m"
 
-echo -e "${CHECKMARK} \e[1;92m Creating folder for jdownloader2... \e[0m"
-mkdir /opt/jdown2
-chown jdown2 /opt/jdown2
-cd /opt/jdown2
+# /bin/chgrp video /dev/dri
+# /bin/chmod 755 /dev/dri
+# /bin/chmod 660 /dev/dri/*
+    
+echo -e "${CHECKMARK} \e[1;92m Downloading Jellyfin Server... \e[0m"
+wget https://repo.jellyfin.org/releases/server/debian/versions/stable/server/10.8.0/jellyfin-server_10.8.0-1_amd64.deb &>/dev/null
+wget https://repo.jellyfin.org/releases/server/debian/versions/stable/web/10.8.0/jellyfin-web_10.8.0-1_all.deb &>/dev/null
 
-echo -e "${CHECKMARK} \e[1;92m Downloading jdownloader2... \e[0m"
-sudo -u jdown2 wget http://installer.jdownloader.org/JDownloader.jar
-wget -O /etc/systemd/system/jdownloader2.service https://raw.githubusercontent.com/pronpan/proxmox-scripts/main/systemd_files/jdownloader2.service &>/dev/null
+echo -e "${CHECKMARK} \e[1;92m Adding Jellyfin Repo... \e[0m"
+cat <<EOF > /etc/apt/sources.list.d/jellyfin.list
+deb [arch=amd64] https://repo.jellyfin.org/debian bullseye main
+EOF
 
-echo -e "${CHECKMARK} \e[1;92m Enabling systemd service for jdownloader2... \e[0m"
-systemctl daemon-reload &>/dev/null
-systemctl enable jdownloader2 &>/dev/null
+curl -fsSL https://repo.jellyfin.org/debian/jellyfin_team.gpg.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/debian-jellyfin.gpg &>/dev/null
 
-#echo -e "${CHECKMARK} \e[1;92m Setting up NFS share for the jdownloader2 Downloads folder... \e[0m"
-#wget -O /etc/exports https://raw.githubusercontent.com/pronpan/proxmox-scripts/main/config_files/exports &>/dev/null
-#systemctl restart nfs-kernel-server &>/dev/null
+echo -e "${CHECKMARK} \e[1;92m Installing Jellyfin Server... \e[0m"
+dpkg -i jellyfin-server_10.8.0-1_amd64.deb jellyfin-web_10.8.0-1_all.deb &>/dev/null
 
-#echo -e "${CHECKMARK} \e[1;92m Disabling NFS server... \e[0m"
-#systemctl disable --now nfs-kernel-server &>/dev/null
+mkdir -p /var/cache/jellyfin
+mkdir -p /var/log/jellyfin
+chown -R jellyfin:jellyfin /var/cache/jellyfin
+chown -R jellyfin:jellyfin /var/log/jellyfin
 
-echo -e "${CHECKMARK} \e[1;92m Customizing container... \e[0m"
+echo -e "${CHECKMARK} \e[1;92m Customizing Container... \e[0m"
 rm /etc/motd 
 rm /etc/update-motd.d/10-uname 
 touch ~/.hushlogin 
@@ -76,4 +84,4 @@ EOF
 systemctl daemon-reload
 systemctl restart $(basename $(dirname $GETTY_OVERRIDE) | sed 's/\.d//')
 echo -e "${CHECKMARK} \e[1;92m Cleanup... \e[0m"
-rm -rf /jdownloader2_setup.sh /var/{cache,log}/* /var/lib/apt/lists/*
+rm -rf /jellyfin_setup.sh /var/{cache,log}/* /var/lib/apt/lists/*
